@@ -1,0 +1,27 @@
+{
+  "name": "online-judge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "env": "./node_modules/.bin/env-cmd -f ./config/dev.env",
+    "dev": "npm run env nodemon src/index.js --exec 'npm run lint && node'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "env-cmd": "^10.0.1",
+    "express": "^4.17.1",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.7.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.5.0",
+    "eslint-config-google": "^0.14.0",
+    "nodemon": "^1.19.3"
+  }
+}
