@@ -33,4 +33,7 @@ module.exports = {
       return res.status(status.BAD_REQUEST).json(e);
     }
   },
+  get: function(req, res) {
+    return res.status(status.OK).json(req.user);
+  },
 };

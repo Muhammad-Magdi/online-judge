@@ -20,7 +20,7 @@ router.get('/login', userController.login);
  * Read My Profile
  * GET /api/users/me
  */
-// router.get('/me', userAuth, userController.get);
+router.get('/me', userAuth, userController.get);
 
 /**
  * Read User Public data

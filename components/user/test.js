@@ -2,17 +2,23 @@ const request = require('supertest');
 const app = require('../../app');
 const User = require('../user/model');
 
+let user;
+const wrongToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'+
+'eyJfaWQiOiI1ZDk1NzIwOWM0YWY0ZjMzMWRkYTA4YmEiLCJpYXQiOjE1NzAwNzUxNDV9.'+
+'W1kYfvnUBkVvkUbrxtxtW_0rVOpl2RgAr8YOsQbZdsk';
+
 beforeEach(async () => {
   await User.deleteMany();
-  const user = new User({
+  user = new User({
     email: 'first@user.com',
     password: 'password1',
     handle: 'user1',
   });
+  user.token = user.generateAuthToken();
   await user.save();
 });
 
-describe('Create User', () => {
+describe('POST /api/users', () => {
   it('Should Sign Up a new User', async () => {
     await request(app).post('/api/users')
         .send({
@@ -51,7 +57,7 @@ describe('Create User', () => {
   });
 });
 
-describe('Login User', ()=> {
+describe('GET /api/users/login', () => {
   it('Should Login user using email', async ()=> {
     await request(app).get('/api/users/login')
         .send({
@@ -83,5 +89,39 @@ describe('Login User', ()=> {
           password: 'password2',
         })
         .expect(400);
+  });
+});
+
+describe('GET /api/users/me', () => {
+  it('Should Get Profile Data', async () => {
+    await request(app).get('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
+        .expect(200);
+  });
+  it('Should not return the password', async () => {
+    console.log(user.token);
+    await request(app).get('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
+        .expect(function(res) {
+          if (JSON.parse(res.text).password != null) {
+            throw new Error('Password must not be returned');
+          }
+        })
+        .expect(200);
+  });
+  it('Should fail to get profile Data - No Token', async () => {
+    console.log(user.token);
+    await request(app).get('/api/users/me')
+        .expect(400);
+  });
+  it('Should fail to get Profile Data - wrong Token', async () => {
+    await request(app).get('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(wrongToken))
+        .expect(401);
+  });
+  it('Should fail to get profile Data - Invalid Token', async () => {
+    await request(app).get('/api/users/me')
+        .set('Authorization', 'Bearer '.concat('invalidToken'))
+        .expect(401);
   });
 });
