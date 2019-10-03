@@ -39,9 +39,9 @@ const userSchema = new mongoose.Schema({
 });
 
 const joiUserSchema = {
-  email: Joi.email().required().max(256),
-  password: Joi.string().regex(/^[a-zA-Z0-9._-]$/).required().min(8).max(256),
-  handle: Joi.String().required().max(256),
+  email: Joi.string().email().required().max(256),
+  password: Joi.string().required().min(8).max(256),
+  handle: Joi.string().required().max(256),
 };
 
 userSchema.virtual('submissions', {
@@ -72,14 +72,25 @@ userSchema.methods.toJSON = function() {
   return userObject;
 };
 
-userSchema.statics.findByCredentials = async (email, password) => {
-  const user = await User.findOne({email});
-  if (!user || !bcrypt.compare(password, user.password)) {
+userSchema.statics.findByEmail = async (email, password) => {
+  try {
+    const user = await User.findOne({email});
+    if (!user || !bcrypt.compare(password, user.password)) {
+      throw new Error('Invalid Email and/or password!');
+    }
+    return user;
+  } catch (e) {
+    throw e;
+  }
+};
+
+userSchema.statics.findByHandle = async (handle, password) => {
+  const user = await User.findOne({handle});
+  if (!user || !await bcrypt.compare(password, user.password)) {
     throw new Error('Invalid Email and/or password!');
   }
   return user;
 };
-
 
 userSchema.statics.validate = (user) => {
   return Joi.validate(user, joiUserSchema);
