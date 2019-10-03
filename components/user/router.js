@@ -20,24 +20,24 @@ router.get('/login', userController.login);
  * Read My Profile
  * GET /api/users/me
  */
-router.get('/me', userAuth, userController.get);
+// router.get('/me', userAuth, userController.get);
 
 /**
  * Read User Public data
  * GET /api/users/:userId
  */
-router.get('/:userId', userController.getUser);
+// router.get('/:userId', userController.getUser);
 
 /**
  * Update My Profile
  * PUT /api/users/me
  */
-router.put('/me', userAuth, userController.update);
+// router.put('/me', userAuth, userController.update);
 
 /**
  * Delete Account
  * DELETE /api/users/me
  */
-router.delete('/me', userAuth, userController.delete);
+// router.delete('/me', userAuth, userController.delete);
 
 module.exports = router;
