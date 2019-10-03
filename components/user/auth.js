@@ -15,7 +15,7 @@ module.exports = async function(req, res, next) {
       const {_id} = ret;
       const user = await User.findById(_id);
       if (!user) {
-        res.status(status.UNAUTHORIZED).send('Invalid Authorization Token!');
+        res.status(status.NOT_FOUND).send('Invalid Authorization Token!');
         return;
       }
       req.user = user;
