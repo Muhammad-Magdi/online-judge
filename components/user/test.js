@@ -99,7 +99,6 @@ describe('GET /api/users/me', () => {
         .expect(200);
   });
   it('Should not return the password', async () => {
-    console.log(user.token);
     await request(app).get('/api/users/me')
         .set('Authorization', 'Bearer '.concat(user.token))
         .expect(function(res) {
@@ -123,5 +122,42 @@ describe('GET /api/users/me', () => {
     await request(app).get('/api/users/me')
         .set('Authorization', 'Bearer '.concat('invalidToken'))
         .expect(401);
+  });
+});
+
+describe('GET /api/users/userIdOrHandle', () => {
+  it('Should Get Public Profile Data using his handle', async () => {
+    await request(app).get('/api/users/'.concat(user.handle))
+        .expect(function(res) {
+          if (JSON.parse(res.text).email != null) {
+            throw new Error('Email is not public');
+          }
+          if (JSON.parse(res.text).password != null) {
+            throw new Error('Password is not public');
+          }
+          if (JSON.parse(res.text).handle == null) {
+            throw new Error('Handle is public');
+          }
+        })
+        .expect(200);
+  });
+  it('Should Get Public Profile Data using his id', async () => {
+    await request(app).get('/api/users/'.concat(user._id))
+        .expect(function(res) {
+          if (JSON.parse(res.text).email != null) {
+            throw new Error('Email is not public');
+          }
+          if (JSON.parse(res.text).password != null) {
+            throw new Error('Password is not public');
+          }
+          if (JSON.parse(res.text).handle == null) {
+            throw new Error('Handle is public');
+          }
+        })
+        .expect(200);
+  });
+  it('Should get a 404 - no such user', async () => {
+    await request(app).get('/api/users/'.concat('NoHandleMatchesThisOne'))
+        .expect(404);
   });
 });
