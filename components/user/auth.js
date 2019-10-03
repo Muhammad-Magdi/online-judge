@@ -7,11 +7,12 @@ module.exports = async function(req, res, next) {
     return res.status(status.BAD_REQUEST).send('Authorization Token Required!');
   }
   const token = req.header('Authorization').replace('Bearer ', '');
-  jwt.verify(token, process.env.JWT_SECRET, async function(err, {_id}) {
-    if (err) {
+  jwt.verify(token, process.env.JWT_SECRET, async function(err, ret) {
+    if (err || !ret) {
       return res.status(status.UNAUTHORIZED).json(err);
     }
     try {
+      const {_id} = ret;
       const user = await User.findById(_id);
       if (!user) {
         res.status(status.UNAUTHORIZED).send('Invalid Authorization Token!');
