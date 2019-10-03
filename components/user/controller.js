@@ -36,4 +36,21 @@ module.exports = {
   get: function(req, res) {
     return res.status(status.OK).json(req.user);
   },
+  getUser: async function(req, res) {
+    const key = req.params.userIdOrHandle;
+    try {
+      let user;
+      if (validator.isMongoId(key)) {
+        user = await User.findById(key);
+      } else {
+        user = await User.findOne({handle: key});
+      }
+      if (!user) {
+        return res.status(status.NOT_FOUND).send('User Not Found');
+      }
+      return res.status(status.OK).json(user.getPublicData());
+    } catch (e) {
+      return res.status(status.INTERNAL_SERVER_ERROR).json(e);
+    }
+  },
 };
