@@ -24,9 +24,9 @@ router.get('/me', userAuth, userController.get);
 
 /**
  * Read User Public data
- * GET /api/users/:userId
+ * GET /api/users/:userIdOrHandle
  */
-// router.get('/:userId', userController.getUser);
+router.get('/:userIdOrHandle', userController.getUser);
 
 /**
  * Update My Profile
