@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     max: 1024,
     required: true,
   },
+  isEmailPublic: {
+    type: Boolean,
+    default: false,
+  },
   groups: [{
     type: mongoose.Types.ObjectId,
     ref: 'Group',
@@ -63,6 +67,17 @@ userSchema.methods.generateAuthToken = function() {
   const user = this;
   const token = jwt.sign({_id: user._id.toString()}, process.env.JWT_SECRET);
   return token;
+};
+
+userSchema.methods.getPublicData = function() {
+  const user = this;
+  const userObject = user.toObject();
+  delete userObject.password;
+  if (!userObject.isEmailPublic) {
+    delete userObject.email;
+  }
+  delete userObject.isEmailPublic;
+  return userObject;
 };
 
 userSchema.methods.toJSON = function() {
