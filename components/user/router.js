@@ -32,12 +32,12 @@ router.get('/:userIdOrHandle', userController.getUser);
  * Update My Profile
  * PUT /api/users/me
  */
-// router.put('/me', userAuth, userController.update);
+router.put('/me', userAuth, userController.update);
 
 /**
  * Delete Account
  * DELETE /api/users/me
  */
-// router.delete('/me', userAuth, userController.delete);
+router.delete('/me', userAuth, userController.delete);
 
 module.exports = router;

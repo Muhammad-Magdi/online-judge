@@ -116,7 +116,7 @@ describe('GET /api/users/me', () => {
   it('Should fail to get Profile Data - wrong Token', async () => {
     await request(app).get('/api/users/me')
         .set('Authorization', 'Bearer '.concat(wrongToken))
-        .expect(401);
+        .expect(404);
   });
   it('Should fail to get profile Data - Invalid Token', async () => {
     await request(app).get('/api/users/me')
@@ -158,6 +158,44 @@ describe('GET /api/users/userIdOrHandle', () => {
   });
   it('Should get a 404 - no such user', async () => {
     await request(app).get('/api/users/'.concat('NoHandleMatchesThisOne'))
+        .expect(404);
+  });
+});
+
+describe('PUT /api/users/me', () => {
+  it('Should Update user data', async () => {
+    await request(app).put('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
+        .send({
+          password: '12345678',
+          email: 'a@b.com',
+        })
+        .expect(function(res) {
+          if (JSON.parse(res.text).email != 'a@b.com') {
+            throw new Error('Email was not updated!');
+          }
+        })
+        .expect(200);
+  });
+  it('Should fail to update handle', async () => {
+    await request(app).put('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
+        .send({
+          password: '12345678',
+          email: 'a@b.com',
+          handle: 'newOne',
+        })
+        .expect(403);
+  });
+});
+
+describe('DELETE /api/users/me', () => {
+  it('Should Delete the user', async () => {
+    await request(app).delete('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
+        .expect(204);
+    await request(app).get('/api/users/me')
+        .set('Authorization', 'Bearer '.concat(user.token))
         .expect(404);
   });
 });
