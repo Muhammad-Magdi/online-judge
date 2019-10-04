@@ -3,9 +3,6 @@ const app = require('../../app');
 const User = require('../user/model');
 
 let user;
-const wrongToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'+
-'eyJfaWQiOiI1ZDk1NzIwOWM0YWY0ZjMzMWRkYTA4YmEiLCJpYXQiOjE1NzAwNzUxNDV9.'+
-'W1kYfvnUBkVvkUbrxtxtW_0rVOpl2RgAr8YOsQbZdsk';
 
 beforeEach(async () => {
   await User.deleteMany();
@@ -19,88 +16,128 @@ beforeEach(async () => {
 });
 
 describe('POST /api/users', () => {
-  it('Should Sign Up a new User', async () => {
-    await request(app).post('/api/users')
-        .send({
-          email: 'ab@c.d',
-          password: 'hello$password',
-          handle: 'goodOne',
-        })
+  it('Should sign up a new User, when email/password/handle are valid', async () => {
+    const newUser = {
+      email: 'ab@c.d',
+      password: 'hello$password',
+      handle: 'goodOne',
+    };
+
+    await request(app)
+        .post('/api/users')
+        .send(newUser)
+
         .expect(201);
   });
-  it('Should Fail - Invalid email', async () => {
-    await request(app).post('/api/users')
-        .send({
-          email: 'badEmail',
-          password: 'hello_password',
-          handle: 'goodOne',
-        })
+  it('Should fail to sign up a new User, when the email is invalid', async () => {
+    const invalidUser = {
+      email: 'badEmail',
+      password: 'hello_password',
+      handle: 'goodOne',
+    };
+
+    await request(app)
+        .post('/api/users')
+        .send(invalidUser)
+
         .expect(400);
   });
-  it('Should Fail - Invalid password', async () => {
-    await request(app).post('/api/users')
-        .send({
-          email: 'a.b@c.d',
-          password: 'short',
-          handle: 'user2',
-        })
+  it('Should fail to sign up a new User, when the password is too short', async () => {
+    const invalidUser = {
+      email: 'a.b@c.d',
+      password: 'short',
+      handle: 'user2',
+    };
+
+    await request(app)
+        .post('/api/users')
+        .send(invalidUser)
+
         .expect(400);
   });
-  it('Should Fail - duplicate handle', async () => {
-    await request(app).post('/api/users')
-        .send({
-          email: 'a.b@c.d',
-          password: 'goodenough',
-          handle: 'user1',
-        })
+  it('Should fail to sign up a new User, when handle is already used', async () => {
+    const invalidUser = {
+      email: 'a.b@c.d',
+      password: 'goodenough',
+      handle: 'user1',
+    };
+
+    await request(app)
+        .post('/api/users')
+        .send(invalidUser)
+
         .expect(400);
   });
 });
 
 describe('GET /api/users/login', () => {
-  it('Should Login user using email', async ()=> {
-    await request(app).get('/api/users/login')
-        .send({
-          credential: 'first@user.com',
-          password: 'password1',
-        })
+  it('Should login user, when a valid email is passed as credential', async ()=> {
+    const signInData = {
+      credential: 'first@user.com',
+      password: 'password1',
+    };
+
+    await request(app)
+        .get('/api/users/login')
+        .send(signInData)
+
         .expect(200);
   });
-  it('Should Login user using handle', async ()=> {
-    await request(app).get('/api/users/login')
-        .send({
-          credential: 'user1',
-          password: 'password1',
-        })
+  it('Should login user, when a valid handle is passed as credential', async ()=> {
+    const signInData = {
+      credential: 'user1',
+      password: 'password1',
+    };
+
+    await request(app)
+        .get('/api/users/login')
+        .send(signInData)
+
         .expect(200);
   });
-  it('Should fail to Login user - wrong email/handle', async ()=> {
-    await request(app).get('/api/users/login')
-        .send({
-          credential: 'fakeHandle',
-          password: 'password1',
-        })
+  it('Should fail to login user, when wrong email/handle is passed', async ()=> {
+    const signInData = {
+      credential: 'fakeHandle',
+      password: 'password1',
+    };
+
+    await request(app)
+        .get('/api/users/login')
+        .send(signInData)
+
         .expect(400);
   });
-  it('Should fail to Login user - wrong password', async ()=> {
-    await request(app).get('/api/users/login')
-        .send({
-          credential: 'user1',
-          password: 'password2',
-        })
+  it('Should fail to login user, when the password is wrong', async ()=> {
+    const signInData = {
+      credential: 'user1',
+      password: 'password2',
+    };
+
+    await request(app)
+        .get('/api/users/login')
+        .send(signInData)
+
         .expect(400);
   });
 });
 
 describe('GET /api/users/me', () => {
-  it('Should Get Profile Data', async () => {
-    await request(app).get('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
+  it('Should get Profile data, when the authorization token is valid', async () => {
+    const authToken = 'Bearer '.concat(user.token);
+
+    await request(app)
+        .get('/api/users/me')
+        .set('Authorization', authToken)
+
         .expect(200);
   });
-  it('Should not return the password', async () => {
-    await request(app).get('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
+  it('Should get profile data with no password inside it', async () => {
+    const authToken = 'Bearer '.concat(user.token);
+
+    await request(app)
+        .get('/api/users/me')
+        .set('Authorization', authToken)
+
         .expect(function(res) {
           if (JSON.parse(res.text).password != null) {
             throw new Error('Password must not be returned');
@@ -108,26 +145,37 @@ describe('GET /api/users/me', () => {
         })
         .expect(200);
   });
-  it('Should fail to get profile Data - No Token', async () => {
-    console.log(user.token);
-    await request(app).get('/api/users/me')
+  it('Should fail to get Profile data, when no token is passed', async () => {
+    await request(app)
+        .get('/api/users/me')
+
         .expect(400);
   });
-  it('Should fail to get Profile Data - wrong Token', async () => {
-    await request(app).get('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(wrongToken))
+  it('Should fail to get Profile data, when a wrong token is passed', async () => {
+    const wrongToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'+
+    'eyJfaWQiOiI1ZDk1NzIwOWM0YWY0ZjMzMWRkYTA4YmEiLCJpYXQiOjE1NzAwNzUxNDV9.'+
+    'W1kYfvnUBkVvkUbrxtxtW_0rVOpl2RgAr8YOsQbZdsk';
+
+    await request(app)
+        .get('/api/users/me')
+        .set('Authorization', wrongToken)
+
         .expect(404);
   });
-  it('Should fail to get profile Data - Invalid Token', async () => {
-    await request(app).get('/api/users/me')
-        .set('Authorization', 'Bearer '.concat('invalidToken'))
+  it('Should fail to get Profile data, when an Invalid token is passed', async () => {
+    await request(app)
+        .get('/api/users/me')
+        .set('Authorization', 'Bearer invalidToken')
+
         .expect(401);
   });
 });
 
 describe('GET /api/users/userIdOrHandle', () => {
-  it('Should Get Public Profile Data using his handle', async () => {
-    await request(app).get('/api/users/'.concat(user.handle))
+  it('Should get Public Profile data, when using his handle', async () => {
+    await request(app)
+        .get('/api/users/'.concat(user.handle))
+        
         .expect(function(res) {
           if (JSON.parse(res.text).email != null) {
             throw new Error('Email is not public');
@@ -141,8 +189,10 @@ describe('GET /api/users/userIdOrHandle', () => {
         })
         .expect(200);
   });
-  it('Should Get Public Profile Data using his id', async () => {
-    await request(app).get('/api/users/'.concat(user._id))
+  it('Should get Public Profile data, when using his id', async () => {
+    await request(app)
+        .get('/api/users/'.concat(user._id))
+
         .expect(function(res) {
           if (JSON.parse(res.text).email != null) {
             throw new Error('Email is not public');
@@ -156,20 +206,27 @@ describe('GET /api/users/userIdOrHandle', () => {
         })
         .expect(200);
   });
-  it('Should get a 404 - no such user', async () => {
-    await request(app).get('/api/users/'.concat('NoHandleMatchesThisOne'))
+  it('Should get a 404 - no such user, when invalid handle is given', async () => {
+    await request(app)
+        .get('/api/users/'.concat('NoHandleMatchesThisOne'))
+
         .expect(404);
   });
 });
 
 describe('PUT /api/users/me', () => {
   it('Should Update user data', async () => {
-    await request(app).put('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
-        .send({
-          password: '12345678',
-          email: 'a@b.com',
-        })
+    const authToken = 'Bearer '.concat(user.token);
+    const newUserData = {
+      password: '12345678',
+      email: 'a@b.com',
+    };
+
+    await request(app)
+        .put('/api/users/me')
+        .set('Authorization', authToken)
+        .send(newUserData)
+
         .expect(function(res) {
           if (JSON.parse(res.text).email != 'a@b.com') {
             throw new Error('Email was not updated!');
@@ -177,25 +234,34 @@ describe('PUT /api/users/me', () => {
         })
         .expect(200);
   });
-  it('Should fail to update handle', async () => {
-    await request(app).put('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
-        .send({
-          password: '12345678',
-          email: 'a@b.com',
-          handle: 'newOne',
-        })
+  it('Should fail to update user data, when handle is being updated', async () => {
+    const authToken = 'Bearer '.concat(user.token);
+    const newUserData = {
+      password: '12345678',
+      email: 'a@b.com',
+      handle: 'newOne',
+    };
+
+    await request(app)
+        .put('/api/users/me')
+        .set('Authorization', authToken)
+        .send(newUserData)
+
         .expect(403);
   });
 });
 
 describe('DELETE /api/users/me', () => {
-  it('Should Delete the user', async () => {
+  it('Should delete the User', async () => {
+    const authToken = 'Bearer '.concat(user.token);
+
     await request(app).delete('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
+        .set('Authorization', authToken)
+
         .expect(204);
     await request(app).get('/api/users/me')
-        .set('Authorization', 'Bearer '.concat(user.token))
+        .set('Authorization', authToken)
+
         .expect(404);
   });
 });
